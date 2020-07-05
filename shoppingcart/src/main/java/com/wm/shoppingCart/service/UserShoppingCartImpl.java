@@ -124,13 +124,11 @@ public class UserShoppingCartImpl implements UserShoppingCart {
                    continue Out;
                 }
             }
-            System.out.println(125);
             return false;
         }
 
         if (updateList.size() <= 0) {
             if (removeList.size() <= 0) {
-                System.out.println(131);
                 return false;
             }
             return userShoppingCartDao.removeCommodities(removeList);

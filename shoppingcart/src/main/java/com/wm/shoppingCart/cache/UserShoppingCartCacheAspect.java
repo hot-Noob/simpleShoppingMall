@@ -115,14 +115,15 @@ public class UserShoppingCartCacheAspect {
             return false;
         }
         String userId = String.valueOf(commodityVO.getUserId());
-        ReentrantReadWriteLock lock = locks.get(userId);
-        if (lock == null) {
-            lock = new ReentrantReadWriteLock();
-            locks.put(userId, lock);
-        }
-        lock.writeLock().lock();
+        
         boolean success = (boolean) joinPoint.proceed();
         if (success) {
+            ReentrantReadWriteLock lock = locks.get(userId);
+            if (lock == null) {
+                lock = new ReentrantReadWriteLock();
+                locks.put(userId, lock);
+            }
+            lock.writeLock().lock();
             Map<String, ShoppingCartCommodityVO> commodityVOMap = hashOperations.entries(userId);
             if (commodityVOMap != null && commodityVOMap.size() > 0) {
                 ShoppingCartCommodityVO commodity = commodityVOMap.get(commodityVO.getCommodityId() + commodityVO.getProperty());
@@ -141,8 +142,9 @@ public class UserShoppingCartCacheAspect {
                 }
             }
             objRedisTemplate.expire(userId, TIME_OUT_SECONDS, TimeUnit.SECONDS);
+            lock.writeLock().unlock();
         }
-        lock.writeLock().unlock();
+
         return success;
     }
 }
